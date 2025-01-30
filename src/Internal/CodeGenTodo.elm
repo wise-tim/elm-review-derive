@@ -32,6 +32,7 @@ type alias CodeGenTodo =
     , parameters : List (Node Pattern)
     , signature : Signature
     , genericArguments : Dict.Dict String String
+    , moduleName : ModuleName
     }
 
 
@@ -142,6 +143,18 @@ type DeclarationSearchResult
     | NotFound
 
 
+
+-- type alias ExistingFunctionProvider =
+--     { codeGenId : String
+--     , moduleName : ModuleName
+--     , fromDependency : Bool
+--     , functionName : String
+--     , childType : ResolvedType
+--     , genericArguments : List String
+--     , privateTo : Maybe (List String)
+--     }
+
+
 declarationsVisitor :
     { a | codeGens : List ConfiguredCodeGenerator, lookupTable : ModuleNameLookupTable.ModuleNameLookupTable, currentModule : ModuleName }
     -> List ResolvedType
@@ -160,7 +173,18 @@ declarationsVisitor context availableTypes =
                             go todos providers rest
 
                         FoundTodo todo ->
-                            go (todo :: todos) providers rest
+                            go (todo :: todos)
+                                ({ codeGenId = todo.codeGenId
+                                 , moduleName = todo.moduleName
+                                 , fromDependency = False
+                                 , functionName = todo.functionName
+                                 , childType = todo.childType
+                                 , genericArguments = todo.genericArguments |> Dict.keys
+                                 , privateTo = Nothing
+                                 }
+                                    :: providers
+                                )
+                                rest
 
                         FoundProvider provider ->
                             go todos (provider :: providers) rest
@@ -207,11 +231,12 @@ declarationVisitor context availableTypes declarationRange function =
                                             FoundTodo
                                                 { functionName = Node.value signature.name
                                                 , childType = ResolvedType.fromTypeSignature context.lookupTable availableTypes context.currentModule childType
+                                                , codeGenId = codeGenId
                                                 , range = declarationRange
                                                 , parameters = declaration.arguments
                                                 , signature = signature
-                                                , codeGenId = codeGenId
                                                 , genericArguments = Dict.fromList genericAssigments
+                                                , moduleName = context.currentModule
                                                 }
                                         )
 

@@ -64,6 +64,7 @@ import Elm.Syntax.Module exposing (Module(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range exposing (Range)
+import Internal.Builtin.CodeGenExpr
 import Internal.Builtin.Codec
 import Internal.Builtin.CsvDecoder
 import Internal.Builtin.FromString
@@ -132,6 +133,7 @@ rule incrementalMode generators =
                    , Internal.Builtin.ToString.codeGen
                    , Internal.Builtin.FromString.codeGen
                    , Internal.Builtin.CsvDecoder.codeGen
+                   , Internal.Builtin.CodeGenExpr.codeGen
                    ]
     in
     Rule.newProjectRuleSchema "Derive" initialProjectContext
